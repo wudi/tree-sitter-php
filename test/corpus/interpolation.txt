@@ -8,7 +8,7 @@ echo "hi";
 
 (program
   (php_tag)
-  (echo_statement (encapsed_string (string_value))))
+  (echo_statement (encapsed_string (string_content))))
 
 ===============================
 interpolated text at beginning
@@ -22,7 +22,7 @@ echo "hi";
 (program
   (text)
   (php_tag)
-  (echo_statement (encapsed_string (string_value))))
+  (echo_statement (encapsed_string (string_content))))
 
 ===============================
 interpolated text at end
@@ -38,7 +38,7 @@ echo "hi";
 
 (program
   (php_tag)
-  (echo_statement (encapsed_string (string_value)))
+  (echo_statement (encapsed_string (string_content)))
   (text_interpolation (text)))
 
 ===============================
@@ -59,11 +59,11 @@ echo "bye";
 
 (program
   (php_tag)
-  (echo_statement (encapsed_string (string_value)))
+  (echo_statement (encapsed_string (string_content)))
   (text_interpolation
     (text)
     (php_tag))
-  (echo_statement (encapsed_string (string_value)))
+  (echo_statement (encapsed_string (string_content)))
   (text_interpolation))
 
 ==============================
@@ -79,7 +79,7 @@ Finished
 
 (program
   (php_tag)
-  (echo_statement (encapsed_string (string_value) (escape_sequence)))
+  (echo_statement (encapsed_string (string_content) (escape_sequence)))
   (text_interpolation (text)))
 
 ==============================
@@ -109,7 +109,7 @@ $a = 'This gets echoed twice';
 (program
   (text)
   (php_tag)
-  (expression_statement (assignment_expression (variable_name (name)) (string (string_value))))
+  (expression_statement (assignment_expression (variable_name (name)) (string (string_content))))
   (text_interpolation (php_tag))
   (expression_statement (variable_name (name)))
   (text_interpolation (text) (php_tag))
@@ -140,11 +140,11 @@ echo "hi";
   (text_interpolation (text) (php_tag))
   (comment)
   (comment)
-  (echo_statement (encapsed_string (string_value))))
+  (echo_statement (encapsed_string (string_content))))
 
 
 =======================================
-Singel line comment without any content
+Single line comment without any content
 =======================================
 
 <?php
@@ -163,15 +163,10 @@ if ( ! function_exists('xml_parser_create') ) {
   (if_statement
     condition: (parenthesized_expression
       (unary_op_expression
-        (function_call_expression
+        argument: (function_call_expression
           function: (name)
-          arguments: (arguments (argument (string (string_value))))
-        )
-      )
-    )
-    body: (compound_statement (echo_statement (variable_name (name))))
-  )
-)
+          arguments: (arguments (argument (string (string_content)))))))
+    body: (compound_statement (echo_statement (variable_name (name))))))
 
 =====================================
 Closing tags before the first PHP tag
@@ -186,3 +181,64 @@ a ?> b <?php c;
   (php_tag)
   (expression_statement
     (name)))
+
+====================================
+WordPress colon blocks
+====================================
+
+<?php
+
+if ($post) :
+        ?>
+        <?php
+
+        if ( $open ) {
+            $attachment_id;
+        }
+
+        ?>
+    <?php
+    else :
+        $post;
+
+    endif;
+
+    ?>
+
+---
+
+(program
+  (php_tag)
+  (if_statement
+    condition: (parenthesized_expression (variable_name (name)))
+    body: (colon_block
+      (text_interpolation (php_tag))
+      (if_statement
+        condition: (parenthesized_expression (variable_name (name)))
+        body: (compound_statement (expression_statement (variable_name (name))))
+      )
+    )
+    (text_interpolation (php_tag))
+    alternative: (else_clause
+      body: (colon_block
+        (expression_statement (variable_name (name)))
+      )
+    )
+  )
+  (text_interpolation)
+)
+
+===============================
+octothorpe immediately after text interpolation
+===============================
+
+<a href="<?=$url?>#intro">Intro</a>
+
+---
+
+(program
+  (text)
+  (php_tag)
+  (expression_statement
+    (variable_name (name)))
+  (text_interpolation (text)))

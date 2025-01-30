@@ -9,7 +9,6 @@ TRUE;
 false;
 False;
 FALSE;
-?>
 
 ---
 
@@ -20,8 +19,7 @@ FALSE;
   (expression_statement (boolean))
   (expression_statement (boolean))
   (expression_statement (boolean))
-  (expression_statement (boolean))
-  (text_interpolation))
+  (expression_statement (boolean)))
 
 ==========================
 Floats
@@ -82,17 +80,25 @@ Integers
 )
 
 ============================
-Testing string scanner confirmance
+Testing string scanner conformance
 ==============================
 
-<?php echo "\"\t\\'" . '\n\\\'a\\\b\\' ?>
+<?php
+echo "\"\t\\'" . '\n\\\'a\\\b\\';
 
 ---
 
 (program
   (php_tag)
-  (echo_statement (binary_expression (encapsed_string (escape_sequence) (escape_sequence) (escape_sequence) (string_value)) (string (string_value))))
-  (text_interpolation))
+  (echo_statement (binary_expression
+    (encapsed_string (escape_sequence) (escape_sequence) (escape_sequence) (string_content))
+    (string (string_content)
+      (escape_sequence)
+      (escape_sequence)
+      (string_content)
+      (escape_sequence)
+      (string_content)
+      (escape_sequence)))))
 
 ==========================
 Shell command
@@ -105,5 +111,5 @@ Shell command
 
 (program
   (php_tag)
-  (expression_statement (shell_command_expression (string_value)))
-  (expression_statement (shell_command_expression (string_value))))
+  (expression_statement (shell_command_expression (string_content)))
+  (expression_statement (shell_command_expression (string_content))))

@@ -1,28 +1,31 @@
-#include "tree_sitter/parser.h"
-#include <node.h>
-#include "nan.h"
+#include <napi.h>
 
-using namespace v8;
+typedef struct TSLanguage TSLanguage;
 
-extern "C" TSLanguage * tree_sitter_php();
+extern "C" TSLanguage *tree_sitter_php();
+extern "C" TSLanguage *tree_sitter_php_only();
 
-namespace {
+// "tree-sitter", "language" hashed with BLAKE2
+const napi_type_tag LANGUAGE_TYPE_TAG = {
+    0x8AF2E5212AD58ABF, 0xD5006CAD83ABBA16
+};
 
-NAN_METHOD(New) {}
+Napi::Object Init(Napi::Env env, Napi::Object exports) {
+    auto php = Napi::Object::New(env);
+    php["name"] = Napi::String::New(env, "php");
+    auto php_language = Napi::External<TSLanguage>::New(env, tree_sitter_php());
+    php_language.TypeTag(&LANGUAGE_TYPE_TAG);
+    php["language"] = php_language;
 
-void Init(Local<Object> exports, Local<Object> module) {
-  Local<FunctionTemplate> tpl = Nan::New<FunctionTemplate>(New);
-  tpl->SetClassName(Nan::New("Language").ToLocalChecked());
-  tpl->InstanceTemplate()->SetInternalFieldCount(1);
+    auto php_only = Napi::Object::New(env);
+    php_only["name"] = Napi::String::New(env, "php_only");
+    auto php_only_language = Napi::External<TSLanguage>::New(env, tree_sitter_php_only());
+    php_only_language.TypeTag(&LANGUAGE_TYPE_TAG);
+    php_only["language"] = php_only_language;
 
-  Local<Function> constructor = Nan::GetFunction(tpl).ToLocalChecked();
-  Local<Object> instance = constructor->NewInstance(Nan::GetCurrentContext()).ToLocalChecked();
-  Nan::SetInternalFieldPointer(instance, 0, tree_sitter_php());
-
-  Nan::Set(instance, Nan::New("name").ToLocalChecked(), Nan::New("php").ToLocalChecked());
-  Nan::Set(module, Nan::New("exports").ToLocalChecked(), instance);
+    exports["php"] = php;
+    exports["php_only"] = php_only;
+    return exports;
 }
 
-NODE_MODULE(tree_sitter_php_binding, Init)
-
-}  // namespace
+NODE_API_MODULE(tree_sitter_php_binding, Init)
